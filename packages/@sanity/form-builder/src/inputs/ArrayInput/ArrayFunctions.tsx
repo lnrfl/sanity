@@ -5,8 +5,7 @@ import ButtonGrid from 'part:@sanity/components/buttons/button-grid'
 import {Type} from '../../typedefs'
 import styles from './styles/ArrayInput.css'
 import {ArrayType, ItemValue} from './typedefs'
-import PatchEvent from '../../PatchEvent'
-import PlusIcon from 'part:@sanity/base/plus-icon'
+
 type Props = {
   type: ArrayType
   children: Node | null
@@ -30,11 +29,24 @@ export default class ArrayFunctions extends React.Component<Props, {}> {
     const item = onCreateValue(type)
     onAppendItem(item)
   }
+  renderDropDownItem(item) {
+    const Icon = item.icon
+    return (
+      <div className={styles.dropdownItem}>
+        {item.icon && (
+          <div className={styles.icon}>
+            <Icon />
+          </div>
+        )}
+        <div>{item.title}</div>
+      </div>
+    )
+  }
   renderSelectType() {
     const items = this.props.type.of.map(memberDef => {
       // Use reference icon if reference is to one type only
       const referenceIcon = (memberDef.to || []).length === 1 && memberDef.to[0].icon
-      const icon = memberDef.icon || memberDef.type.icon || referenceIcon || PlusIcon
+      const icon = memberDef.icon || memberDef.type.icon || referenceIcon
       return {
         title: memberDef.title || memberDef.type.name,
         type: memberDef,
@@ -42,7 +54,12 @@ export default class ArrayFunctions extends React.Component<Props, {}> {
       }
     })
     return (
-      <DropDownButton inverted items={items} onAction={this.handleDropDownAction}>
+      <DropDownButton
+        inverted
+        items={items}
+        onAction={this.handleDropDownAction}
+        renderItem={this.renderDropDownItem}
+      >
         Add
       </DropDownButton>
     )
