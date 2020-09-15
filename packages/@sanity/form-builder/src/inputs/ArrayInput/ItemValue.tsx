@@ -22,7 +22,7 @@ import {Marker, Type} from '../../typedefs'
 import ConfirmButton from './ConfirmButton'
 import styles from './styles/ItemValue.css'
 import {ArrayType, ItemValue} from './typedefs'
-import {ChangeIndicator} from '@sanity/base/lib/change-indicators'
+import {ChangeIndicatorScope} from '@sanity/base/lib/change-indicators'
 
 const DragHandle = createDragHandle(() => (
   <span className={styles.dragHandle}>
@@ -271,7 +271,7 @@ export default class RenderItemValue extends React.PureComponent<Props> {
       return null
     }
     return (
-      <ChangeIndicator compareDeep={true}>
+      <ChangeIndicatorScope path={[{_key: value._key}]}>
         <div className={styles.inner}>
           {!isGrid && isSortable && <DragHandle />}
           <div
@@ -313,7 +313,7 @@ export default class RenderItemValue extends React.PureComponent<Props> {
             )}
           </div>
         </div>
-      </ChangeIndicator>
+      </ChangeIndicatorScope>
     )
   }
   render() {
