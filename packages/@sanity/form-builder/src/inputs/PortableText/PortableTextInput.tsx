@@ -189,13 +189,13 @@ const PortableTextInputWithRef = React.forwardRef(function PortableTextInput(
 
   const formField = useMemo(
     () => (
-      <FormField
-        description={type.description}
-        label={type.title}
-        level={level}
-        markers={markers}
-        presence={presence}
-      />
+    <FormField
+      description={type.description}
+      label={type.title}
+      level={level}
+      markers={markers}
+      presence={presence}
+    />
     ),
     [markers, presence]
   )

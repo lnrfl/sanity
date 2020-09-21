@@ -22,6 +22,7 @@ import {Marker, Type} from '../../typedefs'
 import ConfirmButton from './ConfirmButton'
 import styles from './styles/ItemValue.css'
 import {ArrayType, ItemValue} from './typedefs'
+import {ChangeIndicatorScope} from '@sanity/base/lib/change-indicators'
 
 const DragHandle = createDragHandle(() => (
   <span className={styles.dragHandle}>
@@ -48,6 +49,7 @@ const DragHandle = createDragHandle(() => (
 type Props = {
   type: ArrayType
   value: ItemValue
+  compareValue?: any[]
   level: number
   markers: Array<Marker>
   layout?: 'media' | 'default'
@@ -156,7 +158,17 @@ export default class RenderItemValue extends React.PureComponent<Props> {
     }
   }
   renderEditItemForm(item: ItemValue) {
-    const {type, markers, focusPath, onFocus, onBlur, readOnly, filterField, presence} = this.props
+    const {
+      type,
+      markers,
+      focusPath,
+      onFocus,
+      onBlur,
+      readOnly,
+      filterField,
+      presence,
+      compareValue
+    } = this.props
     const options = type.options || {}
     const memberType = this.getMemberType()
     const childMarkers = markers.filter(marker => marker.path.length > 1)
@@ -169,6 +181,7 @@ export default class RenderItemValue extends React.PureComponent<Props> {
         onChange={this.handleChange}
         onFocus={onFocus}
         onBlur={onBlur}
+        compareValue={compareValue}
         focusPath={focusPath}
         readOnly={readOnly || memberType.readOnly}
         markers={childMarkers}
@@ -258,47 +271,49 @@ export default class RenderItemValue extends React.PureComponent<Props> {
       return null
     }
     return (
-      <div className={styles.inner}>
-        {!isGrid && isSortable && <DragHandle />}
-        <div
-          tabIndex={0}
-          onClick={value._key && this.handleEditStart}
-          onKeyPress={this.handleKeyPress}
-          className={styles.previewWrapper}
-        >
+      <ChangeIndicatorScope path={[{_key: value._key}]}>
+        <div className={styles.inner}>
+          {!isGrid && isSortable && <DragHandle />}
           <div
-            tabIndex={-1}
-            ref={this.setFocusArea}
-            className={styles.previewWrapperHelper}
-            onFocus={this.handleFocus}
+            tabIndex={0}
+            onClick={value._key && this.handleEditStart}
+            onKeyPress={this.handleKeyPress}
+            className={styles.previewWrapper}
           >
-            {!value._key && <div className={styles.missingKeyMessage}>Missing key</div>}
-            <Preview layout={previewLayout} value={value} type={memberType} />
+            <div
+              tabIndex={-1}
+              ref={this.setFocusArea}
+              className={styles.previewWrapperHelper}
+              onFocus={this.handleFocus}
+            >
+              {!value._key && <div className={styles.missingKeyMessage}>Missing key</div>}
+              <Preview layout={previewLayout} value={value} type={memberType} />
+            </div>
+          </div>
+
+          <div className={isGrid ? styles.functionsInGrid : styles.functions}>
+            <ValidationStatus markers={scopedValidation} showSummary={!value._ref} />
+            <FieldPresence presence={hasItemFocus ? [] : presence} maxAvatars={1} />
+            {value._ref && (
+              <IntentButton
+                className={styles.linkToReference}
+                icon={LinkIcon}
+                intent="edit"
+                kind={isGrid ? undefined : 'simple'}
+                padding="small"
+                params={{id: value._ref}}
+              />
+            )}
+            {!readOnly && (
+              <ConfirmButton
+                kind={isGrid ? undefined : 'simple'}
+                title="Remove this item"
+                onConfirm={this.handleRemove}
+              />
+            )}
           </div>
         </div>
-
-        <div className={isGrid ? styles.functionsInGrid : styles.functions}>
-          <ValidationStatus markers={scopedValidation} showSummary={!value._ref} />
-          <FieldPresence presence={hasItemFocus ? [] : presence} maxAvatars={1} />
-          {value._ref && (
-            <IntentButton
-              className={styles.linkToReference}
-              icon={LinkIcon}
-              intent="edit"
-              kind={isGrid ? undefined : 'simple'}
-              padding="small"
-              params={{id: value._ref}}
-            />
-          )}
-          {!readOnly && (
-            <ConfirmButton
-              kind={isGrid ? undefined : 'simple'}
-              title="Remove this item"
-              onConfirm={this.handleRemove}
-            />
-          )}
-        </div>
-      </div>
+      </ChangeIndicatorScope>
     )
   }
   render() {

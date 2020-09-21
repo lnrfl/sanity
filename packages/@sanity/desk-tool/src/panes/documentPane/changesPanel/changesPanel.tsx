@@ -21,6 +21,18 @@ import {collectLatestAuthorAnnotations} from './helpers'
 
 import styles from './changesPanel.css'
 
+import {Reporter} from '@sanity/base/lib/change-indicators'
+import * as PathUtils from '@sanity/util/paths'
+import {ScrollContainer} from '@sanity/base/ScrollContainer'
+
+const ChangeFieldWrapper = (props: {path: any; children: React.ReactNode}) => {
+  return (
+    <Reporter id={`change-${PathUtils.toString(props.path)}`} data={{path: props.path}}>
+      {props.children}
+    </Reporter>
+  )
+}
+
 interface ChangesPanelProps {
   changesSinceSelectRef: React.MutableRefObject<HTMLDivElement | null>
   documentId: string
@@ -50,6 +62,7 @@ export function ChangesPanel({
     () => ({
       documentId,
       schemaType,
+      FieldWrapper: ChangeFieldWrapper,
       rootDiff: diff,
       isComparingCurrent
     }),
@@ -127,15 +140,14 @@ export function ChangesPanel({
           )}
         </div>
       </header>
-
-      <div className={styles.body}>
+      <ScrollContainer className={styles.body}>
         <Content
           diff={diff}
           documentContext={documentContext}
           loading={loading}
           schemaType={schemaType}
         />
-      </div>
+      </ScrollContainer>
     </div>
   )
 }
@@ -162,6 +174,8 @@ function Content({
   return (
     <DocumentChangeContext.Provider value={documentContext}>
       <ChangeList diff={diff} schemaType={schemaType} />
+      {/*todo: figure out why this messes up the connector*/}
+      <div style={{height: 2000}} />
     </DocumentChangeContext.Provider>
   )
 }

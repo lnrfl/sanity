@@ -9,6 +9,7 @@ import {DocumentHeaderTitle} from './header/title'
 import {DocumentPanelHeader} from './header/header'
 import {getMenuItems} from './menuItems'
 import {FormView} from './views'
+import {ScrollContainer} from '@sanity/base/ScrollContainer'
 
 import styles from './documentPanel.css'
 import {
@@ -45,6 +46,7 @@ interface DocumentPanelProps {
   timelineMode: 'rev' | 'since' | 'closed'
   toggleInspect: (val: boolean) => void
   value: any
+  compareValue: any
   versionSelectRef: React.MutableRefObject<HTMLDivElement | null>
   views: DocumentView[]
 }
@@ -152,7 +154,7 @@ export function DocumentPanel(props: DocumentPanelProps) {
 
       <PortalProvider element={portalElement}>
         <div className={styles.documentViewerContainer}>
-          <div className={styles.documentScroller}>
+          <ScrollContainer className={styles.documentScroller}>
             {activeView.type === 'form' && (
               <FormView
                 id={props.documentId}
@@ -165,6 +167,7 @@ export function DocumentPanel(props: DocumentPanelProps) {
                 schemaType={props.schemaType}
                 value={displayed}
                 margins={margins}
+                compareValue={props.compareValue}
               />
             )}
 
@@ -180,7 +183,7 @@ export function DocumentPanel(props: DocumentPanelProps) {
                 options: activeView.options,
                 schemaType: props.schemaType
               })}
-          </div>
+          </ScrollContainer>
 
           <div className={styles.portal} ref={portalRef} />
         </div>

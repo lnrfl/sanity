@@ -8,6 +8,7 @@ import {FormFieldPresence, FormFieldPresenceContext} from '@sanity/base/presence
 import PatchEvent from './PatchEvent'
 import {Type, Marker} from './typedefs'
 import {emptyArray, emptyObject} from './utils/empty'
+import {ChangeIndicatorProvider} from '@sanity/base/lib/change-indicators'
 
 const EMPTY_PROPS = emptyObject<{}>()
 const EMPTY_MARKERS: Marker[] = emptyArray()
@@ -24,6 +25,7 @@ interface Props {
   presence?: FormFieldPresence[]
   focusPath: Path
   markers: Marker[]
+  compareValue?: any
   level: number
   isRoot?: boolean
   path: Array<PathSegment>
@@ -43,10 +45,6 @@ const ENABLE_CONTEXT = () => {}
 
 function getDisplayName(component) {
   return component.displayName || component.name || 'Unknown'
-}
-
-function trimChildPath(path, childPath) {
-  return PathUtils.startsWith(path, childPath) ? PathUtils.trimLeft(path, childPath) : EMPTY_PATH
 }
 
 export class FormBuilderInput extends React.Component<Props> {
@@ -184,7 +182,7 @@ export class FormBuilderInput extends React.Component<Props> {
 
   getChildFocusPath() {
     const {path, focusPath} = this.props
-    return trimChildPath(path, focusPath)
+    return PathUtils.trimChildPath(path, focusPath)
   }
 
   render() {
@@ -199,6 +197,7 @@ export class FormBuilderInput extends React.Component<Props> {
       type,
       level,
       focusPath,
+      compareValue,
       isRoot,
       presence: explicitPresence,
       ...rest
@@ -220,7 +219,7 @@ export class FormBuilderInput extends React.Component<Props> {
         .filter(marker => PathUtils.startsWith(path, marker.path))
         .map(marker => ({
           ...marker,
-          path: trimChildPath(path, marker.path)
+          path: PathUtils.trimChildPath(path, marker.path)
         }))
     }
     const childFocusPath = this.getChildFocusPath()
@@ -234,27 +233,37 @@ export class FormBuilderInput extends React.Component<Props> {
             .filter(presence => PathUtils.startsWith(path, presence.path))
             .map(presence => ({
               ...presence,
-              path: trimChildPath(path, presence.path)
+              path: PathUtils.trimChildPath(path, presence.path)
             }))
+
+    const childCompareValue = PathUtils.get(compareValue, path)
 
     return (
       <div data-focus-path={PathUtils.toString(path)}>
         <FormFieldPresenceContext.Provider value={childPresenceInfo}>
-          <InputComponent
-            {...rest}
-            {...leafProps}
-            isRoot={isRoot}
+          <ChangeIndicatorProvider
+            path={path}
+            focusPath={focusPath}
             value={value}
-            readOnly={readOnly || type.readOnly}
-            markers={childMarkers.length === 0 ? EMPTY_MARKERS : childMarkers}
-            type={type}
-            presence={childPresenceInfo}
-            onChange={this.handleChange}
-            onFocus={this.handleFocus}
-            onBlur={this.handleBlur}
-            level={level}
-            ref={this.setInput}
-          />
+            compareValue={childCompareValue}
+          >
+            <InputComponent
+              {...rest}
+              {...leafProps}
+              isRoot={isRoot}
+              value={value}
+              compareValue={childCompareValue}
+              readOnly={readOnly || type.readOnly}
+              markers={childMarkers.length === 0 ? EMPTY_MARKERS : childMarkers}
+              type={type}
+              presence={childPresenceInfo}
+              onChange={this.handleChange}
+              onFocus={this.handleFocus}
+              onBlur={this.handleBlur}
+              level={level}
+              ref={this.setInput}
+            />
+          </ChangeIndicatorProvider>
         </FormFieldPresenceContext.Provider>
       </div>
     )
