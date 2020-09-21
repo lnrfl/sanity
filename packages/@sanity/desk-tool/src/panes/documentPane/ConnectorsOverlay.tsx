@@ -54,7 +54,14 @@ const getOffsetsTo = (source: HTMLElement, target: HTMLElement) => {
     left += el.offsetLeft - el.scrollLeft
     el = el.offsetParent as HTMLElement
   }
-  return {top, left, bounds: {top: bounds.top, bottom: bounds.top + bounds.height}}
+  return {
+    top,
+    left,
+    bounds: {
+      top: bounds.top,
+      bottom: foundScrollContainer ? bounds.top + bounds.height : Number.MAX_SAFE_INTEGER
+    }
+  }
 }
 
 function getRelativeRect(element, parent) {
